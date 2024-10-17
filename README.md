@@ -1,5 +1,5 @@
 # Whereisserver
-
+[简体中文](https://github.com/WurtFun/whereisserver/blob/main/README_zhCN.md)
 - forked form [Tnze/go-mc](https://github.com/Tnze/go-mc)
 - need go 1.22;
 
