@@ -1,7 +1,6 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"net"
 	"os"
@@ -76,16 +75,21 @@ func iterateIPRange(startIP, endIP []int, ipChannel chan<- string, wg *sync.Wait
 }
 
 func main() {
-	startIPStr := flag.String("start", "0.0.0.0")
-	endIPStr := flag.String("end", "255.255.255.255")
-	flag.Parse()
+	args := os.Args[1:]
+	if len(args) < 2 {
+		fmt.Println("Usage: go run main.go <startIP> <endIP>")
+		return
+	}
 
-	startIP, err := parseIP(*startIPStr)
+	startIPStr := args[0]
+	endIPStr := args[1]
+
+	startIP, err := parseIP(startIPStr)
 	if err != nil {
 		fmt.Println("Error parsing start IP:", err)
 		return
 	}
-	endIP, err := parseIP(*endIPStr)
+	endIP, err := parseIP(endIPStr)
 	if err != nil {
 		fmt.Println("Error parsing end IP:", err)
 		return
