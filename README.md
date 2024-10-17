@@ -11,4 +11,4 @@ command:`go run main.go <startIPv4> <endIPv4>`
 All scan results will be saved in the file `catch-server-list/laster-catch.txt`. Each time the program is run, the previous log will be renamed to `catched_<timestamp>.txt`.
 
 # License
-This project is licensed under the MIT License.
+This project is licensed under the [MIT License](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository#disclaimer).
