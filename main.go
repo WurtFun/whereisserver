@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"net"
 	"os"
 	"os/exec"
 	"strconv"
@@ -24,7 +26,71 @@ func isPrivateIP(ip string) bool {
 	return false
 }
 
+func parseIP(ipStr string) ([]int, error) {
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return nil, fmt.Errorf("invalid IP address: %s", ipStr)
+	}
+	ip = ip.To4()
+	if ip == nil {
+		return nil, fmt.Errorf("not an IPv4 address: %s", ipStr)
+	}
+	return []int{int(ip[0]), int(ip[1]), int(ip[2]), int(ip[3])}, nil
+}
+
+func ipToString(ip []int) string {
+	return fmt.Sprintf("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3])
+}
+
+func iterateIPRange(startIP, endIP []int, ipChannel chan<- string, wg *sync.WaitGroup, sem chan struct{}, logFile *os.File) {
+	for i := startIP[0]; i <= endIP[0]; i++ {
+		for j := startIP[1]; j <= endIP[1]; j++ {
+			for k := startIP[2]; k <= endIP[2]; k++ {
+				for l := startIP[3]; l <= endIP[3]; l++ {
+					ip := []int{i, j, k, l}
+					ipStr := ipToString(ip)
+					if isPrivateIP(ipStr) {
+						continue
+					}
+
+					wg.Add(1)
+					sem <- struct{}{}
+
+					time.Sleep(1000 * time.Millisecond)
+
+					go func(ipStr string) {
+						defer wg.Done()
+						defer func() { <-sem }()
+
+						output, err := exec.Command("go", "run", "mcping/mcping.go", ipStr).Output()
+						if err != nil {
+							fmt.Println(ipStr, err, "No data.")
+							return
+						}
+						ipChannel <- fmt.Sprintf("Server address: %s, Back: %s\n", ipStr, strings.TrimSpace(string(output)))
+					}(ipStr)
+				}
+			}
+		}
+	}
+}
+
 func main() {
+	startIPStr := flag.String("start", "0.0.0.0")
+	endIPStr := flag.String("end", "255.255.255.255")
+	flag.Parse()
+
+	startIP, err := parseIP(*startIPStr)
+	if err != nil {
+		fmt.Println("Error parsing start IP:", err)
+		return
+	}
+	endIP, err := parseIP(*endIPStr)
+	if err != nil {
+		fmt.Println("Error parsing end IP:", err)
+		return
+	}
+
 	logDir := "catch-server-list"
 	logFileName := "laster-catch.txt"
 	logFilePath := fmt.Sprintf("%s/%s", logDir, logFileName)
@@ -68,35 +134,7 @@ func main() {
 		}
 	}()
 
-	for i := 110; i < 256; i++ {
-		for j := 42; j < 256; j++ {
-			for k := 1; k < 256; k++ {
-				for l := 1; l < 256; l++ {
-					ip := fmt.Sprintf("%d.%d.%d.%d", i, j, k, l)
-					if isPrivateIP(ip) {
-						continue
-					}
-
-					wg.Add(1)
-					sem <- struct{}{}
-
-					time.Sleep(1000 * time.Millisecond)
-
-					go func(ip string) {
-						defer wg.Done()
-						defer func() { <-sem }()
-
-						output, err := exec.Command("go", "run", "mcping/mcping.go", ip).Output()
-						if err != nil {
-							fmt.Println(ip, err, "No data.")
-							return
-						}
-						ipChannel <- fmt.Sprintf("Server address: %s, Back: %s\n", ip, strings.TrimSpace(string(output)))
-					}(ip)
-				}
-			}
-		}
-	}
+	iterateIPRange(startIP, endIP, ipChannel, &wg, sem, logFile)
 
 	wg.Wait()
 	close(ipChannel)
