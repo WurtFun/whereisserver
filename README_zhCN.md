@@ -12,4 +12,4 @@
 所有返回内容将被保存在`catch-server-list/laster-catch.txt`文件中。每次运行时，旧的日志文件会自动重命名为`catched_<timestamp>.txt`形式的新文件。
 
 # 许可
-本项目遵循MIT License。
+本项目遵循[MIT License](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/licensing-a-repository#disclaimer)。
