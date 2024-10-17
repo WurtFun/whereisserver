@@ -5,4 +5,10 @@
 
 ### How to use?
 
-command:`go run main.go 0.0.0.0 255.255.255.255`
+command:`go run main.go <startIPv4> <endIPv4>`
+
+# Logs
+All scan results will be saved in the file `catch-server-list/laster-catch.txt`. Each time the program is run, the previous log will be renamed to `catched_<timestamp>.txt`.
+
+# License
+This project is licensed under the MIT License.
