@@ -5,4 +5,4 @@
 
 ### How to use?
 
-command:`go run main.go -start=0.0.0.0 -end=255.255.255.255`
+command:`go run main.go 0.0.0.0 255.255.255.255`
